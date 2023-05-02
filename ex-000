@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.19)
+project(MyProject CXX)
+
+set(CMAKE_CXX_COMPILER "icpc")
+
+# Make sure we are using the Intel Compiler
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    message(FATAL_ERROR "Not using Intel compiler")
+endif()
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find TBB
+find_package(TBB REQUIRED)
+
+# Add TBB include directory
+include_directories(${TBB_INCLUDE_DIRS})
+
+# Link TBB static library
+set(TBB_STATIC ON)
+
+# Add your source files
+add_executable(my_project_executable main.cpp)
+
+# Link TBB to your executable
+target_link_libraries(my_project_executable PRIVATE TBB::tbb)
+
+#include <iostream>
+#include <tbb/parallel_for.h>
+
+int main() {
+    std::cout << "Using Intel TBB static library" << std::endl;
+
+    const int n = 10;
+    tbb::parallel_for(0, n, 1, [](int i) {
+        std::cout << "Hello from TBB thread: " << i << std::endl;
+    });
+
+    return 0;
+}
