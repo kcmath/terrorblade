@@ -1,0 +1,106 @@
+#include <iostream>
+#include <vector>
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> a(n, 1.0f);
+    std::vector<float> b(n, 2.0f);
+    std::vector<float> c(n, 0.0f);
+
+    #pragma omp parallel for simd
+    for (int i = 0; i < n; ++i) {
+        c[i] = a[i] + b[i];
+    }
+
+    std::cout << "Result: " << c[0] << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <vector>
+#include <omp.h>
+
+void vector_addition(const std::vector<float>& a, const std::vector<float>& b, std::vector<float>& c, int start, int end) {
+    #pragma omp simd
+    for (int i = start; i < end; ++i) {
+        c[i] = a[i] + b[i];
+    }
+}
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> a(n, 1.0f);
+    std::vector<float> b(n, 2.0f);
+    std::vector<float> c(n, 0.0f);
+
+    const int num_tasks = 4;
+    const int task_size = n / num_tasks;
+
+    #pragma omp parallel
+    #pragma omp single
+    for (int i = 0; i < num_tasks; ++i) {
+        int start = i * task_size;
+        int end = (i == num_tasks - 1) ? n : start + task_size;
+        #pragma omp task shared(a, b, c) firstprivate(start, end)
+        vector_addition(a, b, c, start, end);
+    }
+
+    #pragma omp taskwait
+
+    std::cout << "Result: " << c[0] << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <omp.h>
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> vec(n);
+
+    for (int i = 0; i < n; ++i) {
+        vec[i] = static_cast<float>(i);
+    }
+
+    vec[n / 2] = 10000000.0f; // Add a large value in the middle of the vector
+
+    const int num_tasks = 4;
+    const int task_size = n / num_tasks;
+    float max_values[num_tasks];
+
+    #pragma omp parallel
+    #pragma omp single
+    {
+        for (int i = 0; i < num_tasks; ++i) {
+            int start = i * task_size;
+            int end = (i == num_tasks - 1) ? n : start + task_size;
+
+            #pragma omp task shared(vec) firstprivate(start, end) depend(out: max_values[i])
+            {
+                float local_max = vec[start];
+
+                #pragma omp simd reduction(max:local_max)
+                for (int i = start; i < end; ++i) {
+                    local_max = std::max(local_max, vec[i]);
+                }
+
+                max_values[i] = local_max;
+            }
+        }
+    }
+
+    #pragma omp taskwait
+
+    float global_max = max_values[0];
+    for (int i = 1; i < num_tasks; ++i) {
+        global_max = std::max(global_max, max_values[i]);
+    }
+
+    std::cout << "Maximum value: " << global_max << std::endl;
+
+    return 0;
+}
