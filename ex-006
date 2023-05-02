@@ -1,0 +1,176 @@
+#include <iostream>
+#include <vector>
+#include <tbb/tbb.h>
+
+// Assuming your compiler supports OpenMP SIMD
+#include <omp.h>
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> a(n, 1.0f);
+    std::vector<float> b(n, 2.0f);
+    std::vector<float> c(n, 0.0f);
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, n),
+        [&](const tbb::blocked_range<int>& r) {
+            for (int i = r.begin(); i != r.end(); ++i) {
+                #pragma omp simd
+                for (int j = 0; j < n; ++j) {
+                    c[i] += a[i] * b[j];
+                }
+            }
+        });
+
+    std::cout << "Result: " << c[0] << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <vector>
+#include <CL/sycl.hpp>
+
+using namespace cl::sycl;
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> a(n, 1.0f);
+    std::vector<float> b(n, 2.0f);
+    std::vector<float> c(n, 0.0f);
+
+    queue q;
+    buffer<float, 1> buf_a(a.data(), range<1>(n));
+    buffer<float, 1> buf_b(b.data(), range<1>(n));
+    buffer<float, 1> buf_c(c.data(), range<1>(n));
+
+    q.submit([&](handler& h) {
+        accessor acc_a(buf_a, h, read_only);
+        accessor acc_b(buf_b, h, read_only);
+        accessor acc_c(buf_c, h, write_only);
+
+        h.parallel_for(range<1>(n), [=](id<1> idx) {
+            acc_c[idx] = acc_a[idx] + acc_b[idx];
+        });
+    }).wait();
+
+    std::cout << "Result: " << c[0] << std::endl;
+
+    return 0;
+}
+
+dpcpp vector_addition.cpp -o vector_addition
+./vector_addition
+
+#include <iostream>
+#include <vector>
+#include <tbb/tbb.h>
+#include <CL/sycl.hpp>
+
+using namespace cl::sycl;
+
+void vector_addition(const std::vector<float>& a, const std::vector<float>& b, std::vector<float>& c, int start, int end) {
+    queue q;
+    buffer<float, 1> buf_a(a.data() + start, range<1>(end - start));
+    buffer<float, 1> buf_b(b.data() + start, range<1>(end - start));
+    buffer<float, 1> buf_c(c.data() + start, range<1>(end - start));
+
+    q.submit([&](handler& h) {
+        accessor acc_a(buf_a, h, read_only);
+        accessor acc_b(buf_b, h, read_only);
+        accessor acc_c(buf_c, h, write_only);
+
+        h.parallel_for(range<1>(end - start), [=](id<1> idx) {
+            acc_c[idx] = acc_a[idx] + acc_b[idx];
+        });
+    }).wait();
+}
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> a(n, 1.0f);
+    std::vector<float> b(n, 2.0f);
+    std::vector<float> c(n, 0.0f);
+
+    const int num_tasks = 4;
+    const int task_size = n / num_tasks;
+
+    tbb::task_group tasks;
+    for (int i = 0; i < num_tasks; ++i) {
+        int start = i * task_size;
+        int end = (i == num_tasks - 1) ? n : start + task_size;
+        tasks.run([&, start, end] { vector_addition(a, b, c, start, end); });
+    }
+    tasks.wait();
+
+    std::cout << "Result: " << c[0] << std::endl;
+
+    return 0;
+}
+dpcpp vector_addition_task_group.cpp -o vector_addition_task_group -tbb
+./vector_addition_task_group
+
+
+Sure, here's an example of how to use Intel OpenMP to vectorize a loop inside both tbb::parallel_for and tbb::task_group. This example calculates the element-wise sum of two vectors.
+
+First, let's create a simple C++ program that uses tbb::parallel_for and Intel OpenMP:
+
+cpp
+Copy code
+#include <iostream>
+#include <vector>
+#include <tbb/tbb.h>
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> a(n, 1.0f);
+    std::vector<float> b(n, 2.0f);
+    std::vector<float> c(n, 0.0f);
+
+    tbb::parallel_for(tbb::blocked_range<int>(0, n),
+        [&](const tbb::blocked_range<int>& r) {
+            int start = r.begin();
+            int end = r.end();
+
+            #pragma omp simd
+            for (int i = start; i < end; ++i) {
+                c[i] = a[i] + b[i];
+            }
+        });
+
+    std::cout << "Result: " << c[0] << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <vector>
+#include <tbb/tbb.h>
+
+void vector_addition(const std::vector<float>& a, const std::vector<float>& b, std::vector<float>& c, int start, int end) {
+    #pragma omp simd
+    for (int i = start; i < end; ++i) {
+        c[i] = a[i] + b[i];
+    }
+}
+
+int main() {
+    const int n = 1000000;
+    std::vector<float> a(n, 1.0f);
+    std::vector<float> b(n, 2.0f);
+    std::vector<float> c(n, 0.0f);
+
+    const int num_tasks = 4;
+    const int task_size = n / num_tasks;
+
+    tbb::task_group tasks;
+    for (int i = 0; i < num_tasks; ++i) {
+        int start = i * task_size;
+        int end = (i == num_tasks - 1) ? n : start + task_size;
+        tasks.run([&, start, end] { vector_addition(a, b, c, start, end); });
+    }
+    tasks.wait();
+
+    std::cout << "Result: " << c[0] << std::endl;
+
+    return 0;
+}
