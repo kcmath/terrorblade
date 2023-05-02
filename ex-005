@@ -1,0 +1,72 @@
+#include <iostream>
+#include <tbb/task_group.h>
+#include <vector>
+#include <algorithm>
+#include <random>
+
+int main() {
+    std::cout << "Using Intel TBB task_group and work-stealing to deep copy a vector with a given segment size" << std::endl;
+
+    int n = 100;
+    int segment_size = 20; // Provided segment size
+    std::vector<int> source(n);
+    std::vector<int> destination(n);
+
+    // Fill the source vector with random numbers
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 100);
+    std::generate(source.begin(), source.end(), [&]() { return dis(gen); });
+
+    // Calculate the number of segments based on the provided segment size
+    int num_segments = (n + segment_size - 1) / segment_size;
+
+    tbb::task_group tasks;
+
+    // Create tasks for each segment
+    for (int i = 0; i < num_segments; ++i) {
+        tasks.run([&, i] {
+            int start = i * segment_size;
+            int end = std::min((i + 1) * segment_size, n);
+            std::copy(source.begin() + start, source.begin() + end, destination.begin() + start);
+        });
+    }
+
+    // Wait for all tasks to complete
+    tasks.wait();
+
+    std::cout << "Source vector: ";
+    for (const auto& value : source) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Destination vector: ";
+    for (const auto& value : destination) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <tbb/tbb.h>
+#include <tbb/global_control.h>
+
+int main() {
+    // Get the default number of hardware threads
+    int default_threads = tbb::this_task_arena::max_concurrency();
+
+    // Customize the number of threads used by TBB
+    int custom_threads = 4; // Change this value as needed
+    tbb::global_control control(tbb::global_control::max_allowed_parallelism, custom_threads);
+
+    std::cout << "Default number of hardware threads: " << default_threads << std::endl;
+    std::cout << "Custom number of threads used by TBB: " << custom_threads << std::endl;
+
+    // Use TBB algorithms, e.g., tbb::parallel_for, tbb::parallel_reduce, or tbb::task_group
+    // ...
+
+    return 0;
+}
