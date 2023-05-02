@@ -40,3 +40,20 @@ int main() {
 
     return 0;
 }
+
+
+cmake_minimum_required(VERSION 3.19)
+project(OpenMP_Example)
+
+set(CMAKE_CXX_STANDARD 14)
+
+# Find OpenMP package
+find_package(OpenMP REQUIRED)
+
+# Create the executable target
+add_executable(openmp_example main.cpp)
+
+# Link OpenMP flags and libraries to the target
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(openmp_example PRIVATE OpenMP::OpenMP_CXX)
+endif()
