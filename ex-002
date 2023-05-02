@@ -1,0 +1,87 @@
+#include <iostream>
+#include <tbb/parallel_for.h>
+#include <tbb/combinable.h>
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <limits>
+
+int square(int n) {
+    return n * n;
+}
+
+int main() {
+    std::cout << "Using Intel TBB parallel_for with tbb::combinable to find the maximum squared value" << std::endl;
+
+    int n = 100;
+    std::vector<int> numbers(n);
+
+    // Fill the vector with random numbers
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 100);
+    std::generate(numbers.begin(), numbers.end(), [&]() { return dis(gen); });
+
+    // Define thread-local storage for the maximum value
+    tbb::combinable<int> thread_local_max(std::numeric_limits<int>::min());
+
+    // Compute squares and find maximum value using parallel_for
+    tbb::parallel_for(0, n, 1, [&](int i) {
+        int squared_number = square(numbers[i]);
+        thread_local_max.local() = std::max(thread_local_max.local(), squared_number);
+    });
+
+    // Combine thread-local maxima into final maximum
+    int final_max = thread_local_max.combine([](int a, int b) { return std::max(a, b); });
+
+    std::cout << "Maximum squared value: " << final_max << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <tbb/task_group.h>
+#include <tbb/combinable.h>
+#include <vector>
+#include <algorithm>
+#include <random>
+#include <limits>
+
+int square(int n) {
+    return n * n;
+}
+
+int main() {
+    std::cout << "Using Intel TBB task_group to compute squares and find the maximum value" << std::endl;
+
+    int n = 100;
+    std::vector<int> numbers(n);
+    std::vector<int> squares(n);
+
+    // Fill the vector with random numbers
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 100);
+    std::generate(numbers.begin(), numbers.end(), [&]() { return dis(gen); });
+
+    // Define thread-local storage for the maximum value
+    tbb::combinable<int> thread_local_max(std::numeric_limits<int>::min());
+
+    // Calculate squares and find maximum value using task_group
+    tbb::task_group tg;
+    for (int i = 0; i < n; ++i) {
+        tg.run([&, i] {
+            int squared_number = square(numbers[i]);
+            squares[i] = squared_number;
+            thread_local_max.local() = std::max(thread_local_max.local(), squared_number);
+        });
+    }
+    tg.wait();
+
+    // Combine thread-local maxima into final maximum
+    int final_max = thread_local_max.combine([](int a, int b) { return std::max(a, b); });
+
+    std::cout << "Maximum square value: " << final_max << std::endl;
+
+    return 0;
+}
