@@ -1,0 +1,91 @@
+#include <iostream>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#include <vector>
+#include <algorithm>
+#include <random>
+
+int main() {
+    std::cout << "Using Intel TBB parallel_for to deep copy a vector divided into segments" << std::endl;
+
+    int n = 100;
+    int s = 10; // Number of segments
+    std::vector<int> source(n);
+    std::vector<int> destination(n);
+
+    // Fill the source vector with random numbers
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 100);
+    std::generate(source.begin(), source.end(), [&]() { return dis(gen); });
+
+    // Calculate the size of each segment
+    int segment_size = n / s;
+    if (n % s != 0) {
+        segment_size++;
+    }
+
+    // Deep copy the source vector to the destination vector using parallel_for
+    tbb::parallel_for(tbb::blocked_range<int>(0, s), [&](const tbb::blocked_range<int>& range) {
+        for (int i = range.begin(); i < range.end(); ++i) {
+            int start = i * segment_size;
+            int end = std::min((i + 1) * segment_size, n);
+            std::copy(source.begin() + start, source.begin() + end, destination.begin() + start);
+        }
+    });
+
+    std::cout << "Source vector: ";
+    for (const auto& value : source) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Destination vector: ";
+    for (const auto& value : destination) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <tbb/parallel_for.h>
+#include <tbb/blocked_range.h>
+#include <tbb/auto_partitioner.h>
+#include <vector>
+#include <algorithm>
+#include <random>
+
+int main() {
+    std::cout << "Using Intel TBB parallel_for with auto_partitioner to deep copy a vector" << std::endl;
+
+    int n = 100;
+    std::vector<int> source(n);
+    std::vector<int> destination(n);
+
+    // Fill the source vector with random numbers
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 100);
+    std::generate(source.begin(), source.end(), [&]() { return dis(gen); });
+
+    // Deep copy the source vector to the destination vector using parallel_for
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, n), [&](const tbb::blocked_range<size_t>& range) {
+        std::copy(source.begin() + range.begin(), source.begin() + range.end(), destination.begin() + range.begin());
+    }, tbb::auto_partitioner());
+
+    std::cout << "Source vector: ";
+    for (const auto& value : source) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "Destination vector: ";
+    for (const auto& value : destination) {
+        std::cout << value << " ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+}
