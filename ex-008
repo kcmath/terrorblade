@@ -1,0 +1,70 @@
+#include <iostream>
+#include <vector>
+#include <omp.h>
+
+int main() {
+    const int n = 1000000;
+    const int s = 4;
+    const int segment_size = n / s;
+
+    std::vector<float> src(n, 0.0f);
+    for (int i = 0; i < n; ++i) {
+        src[i] = static_cast<float>(i);
+    }
+
+    std::vector<float> dest(n, 0.0f);
+
+    #pragma omp parallel for
+    for (int seg = 0; seg < s; ++seg) {
+        int start = seg * segment_size;
+        int end = (seg == s - 1) ? n : start + segment_size;
+
+        #pragma omp simd
+        for (int i = start; i < end; ++i) {
+            dest[i] = src[i];
+        }
+    }
+
+    std::cout << "Deep copy completed." << std::endl;
+
+    return 0;
+}
+
+#include <iostream>
+#include <vector>
+#include <omp.h>
+
+int main() {
+    const int n = 1000000;
+    const int s = 4;
+    const int segment_size = n / s;
+
+    std::vector<float> src(n, 0.0f);
+    for (int i = 0; i < n; ++i) {
+        src[i] = static_cast<float>(i);
+    }
+
+    std::vector<float> dest(n, 0.0f);
+
+    #pragma omp parallel
+    #pragma omp single
+    {
+        for (int seg = 0; seg < s; ++seg) {
+            int start = seg * segment_size;
+            int end = (seg == s - 1) ? n : start + segment_size;
+
+            #pragma omp task shared(src, dest) firstprivate(start, end)
+            {
+                #pragma omp simd
+                for (int i = start; i < end; ++i) {
+                    dest[i] = src[i];
+                }
+            }
+        }
+    }
+
+    #pragma omp taskwait
+    std::cout << "Deep copy completed." << std::endl;
+
+    return 0;
+}
