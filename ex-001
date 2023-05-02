@@ -1,0 +1,47 @@
+#include <iostream>
+#include <tbb/task_arena.h>
+#include <tbb/task_group.h>
+#include <chrono>
+
+void task_a() {
+    auto start = std::chrono::steady_clock::now();
+    // Perform task A work here
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Task A completed. Elapsed time: " << elapsed.count() << " seconds" << std::endl;
+}
+
+void task_b() {
+    auto start = std::chrono::steady_clock::now();
+    // Perform task B work here
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Task B completed. Elapsed time: " << elapsed.count() << " seconds" << std::endl;
+}
+
+void task_c() {
+    auto start = std::chrono::steady_clock::now();
+    // Perform task C work here
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Task C completed. Elapsed time: " << elapsed.count() << " seconds" << std::endl;
+}
+
+int main() {
+    std::cout << "Using Intel TBB Task Scheduler with task_arena and task_group" << std::endl;
+
+    tbb::task_arena arena; // Create a task arena
+    arena.execute([&] {
+        tbb::task_group tg;
+
+        tg.run(task_a);
+        tg.run(task_b);
+        tg.run(task_c);
+
+        tg.wait();
+    });
+
+    std::cout << "All tasks completed." << std::endl;
+
+    return 0;
+}
