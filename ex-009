@@ -26,3 +26,27 @@ int main() {
 
     return 0;
 }
+
+#include <iostream>
+#include <memory>
+
+class Data {
+public:
+    int id;
+    float value;
+
+    Data() : id(0), value(0.0f) {}
+    Data(int id, float value) : id(id), value(value) {}
+};
+
+int main() {
+    std::shared_ptr<Data> src_ptr = std::make_shared<Data>(1, 42.0f); // Create an object using a smart pointer
+
+    // Create a new object as a copy of the original object, and manage it using a new shared_ptr
+    std::shared_ptr<Data> dest_ptr = std::make_shared<Data>(*src_ptr);
+
+    std::cout << "src_ptr - id: " << src_ptr->id << ", value: " << src_ptr->value << std::endl;
+    std::cout << "dest_ptr - id: " << dest_ptr->id << ", value: " << dest_ptr->value << std::endl;
+
+    return 0;
+}
