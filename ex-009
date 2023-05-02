@@ -1,0 +1,28 @@
+#include <iostream>
+
+class Data {
+public:
+    int id;
+    float value;
+
+    Data() : id(0), value(0.0f) {}
+    Data(int id, float value) : id(id), value(value) {}
+};
+
+int main() {
+    Data* src_ptr = new Data(1, 42.0f); // Create an object and get its pointer
+
+    // Method 1: Copy-construct a new object from the object pointed by src_ptr
+    Data dest1(*src_ptr);
+
+    // Method 2: Assign the object pointed by src_ptr to another object
+    Data dest2;
+    dest2 = *src_ptr;
+
+    std::cout << "dest1 - id: " << dest1.id << ", value: " << dest1.value << std::endl;
+    std::cout << "dest2 - id: " << dest2.id << ", value: " << dest2.value << std::endl;
+
+    delete src_ptr; // Free the memory allocated for src_ptr
+
+    return 0;
+}
