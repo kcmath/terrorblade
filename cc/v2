@@ -1,0 +1,20 @@
+Lines 1-7: These are the include directives, which include necessary libraries and files for the implementation. This includes utilities for working with sparse arrays, level sets, and graphs.
+
+Lines 9-18: This defines an enumeration called lsVoidTopSurfaceEnum, used to determine which connected component of the level set to keep and mark all other components as void points. Different strategies for choosing the "top surface" are defined here.
+
+Lines 20-44: The class lsMarkVoidPoints is defined, with class templates T and D representing the type of the data in the domain (T) and the dimension of the domain (D) respectively. This class has various private member variables that are used in the marking process. These include a pointer to a level set domain (lsDomain<T, D>), flags to determine whether to reverse the void detection and whether to save component information, and a vector of component counts. The class also includes several private helper functions for managing these components.
+
+Lines 46-60: The public interface of lsMarkVoidPoints is defined. This includes constructors for creating an instance of the class, setter methods for configuring its behavior, and the apply method for executing the void marking process.
+
+Lines 62-81: These are the definitions for the constructors and setter methods. These methods allow users to configure how the marking process will work.
+
+Lines 83-238: The apply method is defined. This is the method that actually carries out the void point marking process. Here's a high-level overview of what it does:
+
+Sets up a graph structure to track the connectivity of points in the level set.
+Iterates over the level set domain, determining which points are connected and assigning them to components.
+After all components have been identified, it determines which component to consider as the "top surface" based on the user's settings. This involves either finding the component with the most points, or picking the lexicographically first or last component.
+Once the top surface has been identified, it goes over the level set again and marks each point depending on whether it's in the top surface or not.
+Finally, it saves the marked points to the lsDomain's point data, so that users can inspect the result.
+Lines 240-245: This is the closing of the lsMarkVoidPoints class definition, as well as the #endif directive for the include guard at the beginning of the file, which prevents double inclusion of the header file.
+
+In general, this class provides a mechanism for marking void points in a level set by identifying connected components and selecting one to be the "top surface". It provides several options for customizing how this process works, such as whether to reverse the void detection, and whether to detect the largest surface.
