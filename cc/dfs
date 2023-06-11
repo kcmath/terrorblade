@@ -84,3 +84,34 @@ std::vector<IndexType> getConnectedComponents() {
 The getConnectedComponents() method first resets the componentIds vector to -1 for each vertex, indicating that no vertices have been visited. It then iterates over each vertex in the adjacencyList; if a vertex hasn't been visited (its component id is -1), it calls depthFirstComponentSearch() on that vertex with the currentComponent id, then increments currentComponent for the next new component found.
 
 The underlying algorithm here is the Depth-First Search (DFS) algorithm, which is being used to find the connected components in the graph. DFS works by visiting a vertex, then recursively visiting all its unvisited neighbours. The getConnectedComponents() function uses DFS to assign a unique id to each connected component in the graph, where a connected component is a set of vertices in a graph that are connected to each other by a path, and disconnected from all other vertices outside the component.
+
+This C++ code defines a lsGraph class for representing a graph data structure. The graph is undirected, as an edge between two vertices is added in both directions. Here are the key elements:
+
+Private members and methods:
+
+adjacencyList: An unordered_map where the key is a vertex id (IndexType), and the value is a set of vertices (edgeListType) to which it has edges.
+
+componentIds: A vector that keeps track of the connected component id each vertex belongs to.
+
+depthFirstComponentSearch(): A private method implementing depth-first search to find all vertices in the same connected component as the given vertex.
+
+Public methods:
+
+insertNextVertex(): Adds a new vertex to the graph.
+
+insertNextEdge(): Adds an undirected edge between two vertices. If the vertices do not exist, they are first created.
+
+getConnectedComponents(): Returns a vector where each element's index corresponds to a vertex, and the value is the id of the connected component that the vertex belongs to.
+
+print(): Prints the graph's adjacency list representation to the console.
+
+Note: The graph is constructed dynamically, and vertices are given numerical identifiers according to the order of their creation (0, 1, 2, etc.). These identifiers are used to index into the componentIds vector.
+
+Note on Typedefs: The class uses a couple of typedef declarations for code readability:
+
+IndexType: A type for indexing components, typedef-ed to std::size_t.
+edgeListType: A type representing the set of edges for a vertex, typedef-ed to std::unordered_set<IndexType>.
+adjacencyListType: A type representing the adjacency list of the graph, typedef-ed to std::unordered_map<IndexType, edgeListType>.
+Note on Error Checking: The method depthFirstComponentSearch() checks if a vertex is in the adjacency list before iterating over its edges. If the vertex is not found, it reports an error using a singleton instance of the lsMessage class, which is assumed to be defined somewhere outside this code.
+
+Keep in mind that there is a potential problem in the method insertNextEdge(). It doesn't check whether vertex1 or vertex2 exceed the current number of vertices, which can lead to errors when trying to access componentIds later. If a vertex id that is higher than the current number of vertices is inserted, it might cause undefined behavior.
