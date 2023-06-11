@@ -1,0 +1,59 @@
+class Graph {
+  using IndexType = std::size_t;
+
+  std::vector<IndexType> parent;
+  std::vector<IndexType> rank;
+
+public:
+  Graph(IndexType n) {
+    parent.resize(n);
+    rank.resize(n, 0);
+    for (IndexType i = 0; i < n; i++) {
+      parent[i] = i;
+    }
+  }
+
+  IndexType find(IndexType x) {
+    if (parent[x] != x) {
+      parent[x] = find(parent[x]); // path compression
+    }
+    return parent[x];
+  }
+
+  void unionSets(IndexType x, IndexType y) {
+    IndexType xRoot = find(x);
+    IndexType yRoot = find(y);
+
+    if (xRoot == yRoot) {
+      return;
+    }
+
+    // Union by rank
+    if (rank[xRoot] < rank[yRoot]) {
+      parent[xRoot] = yRoot;
+    } else if (rank[xRoot] > rank[yRoot]) {
+      parent[yRoot] = xRoot;
+    } else {
+      parent[yRoot] = xRoot;
+      rank[xRoot]++;
+    }
+  }
+
+  std::vector<IndexType> getConnectedComponents() {
+    std::vector<IndexType> componentIds(parent.size());
+    for (IndexType i = 0; i < parent.size(); i++) {
+      componentIds[i] = find(i);
+    }
+    return componentIds;
+  }
+};
+
+Graph(IndexType n) is the constructor that takes the number of vertices in the graph. It initializes the parent and rank vectors.
+
+find(IndexType x) is the find operation that returns the root of the set that the vertex x belongs to. It uses path compression to optimize future queries.
+
+unionSets(IndexType x, IndexType y) is the union operation that merges the sets of vertices x and y. It uses union by rank to maintain a balanced tree and optimize the find operation.
+
+getConnectedComponents() returns a vector of the component ids for each vertex. Each vertex's component id is the root of its set.
+
+Now to add edges to the graph, you can call unionSets(vertex1, vertex2). To get the connected components, you can call getConnectedComponents(). The find operation will tell you which component (set) a vertex belongs to.
