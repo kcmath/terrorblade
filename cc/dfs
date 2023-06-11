@@ -1,0 +1,15 @@
+The class represents an undirected graph using adjacency lists and provides a method to identify connected components within that graph. Here's a brief explanation of its contents:
+
+The class maintains an adjacency list (adjacencyList) for storing graph data. Each entry in the list contains a vertex and a list of all vertices directly connected to it. The adjacency list is a map where keys are the indices of vertices and values are sets of indices representing adjacent vertices.
+
+The componentIds vector is used to track the component that each vertex belongs to.
+
+The insertNextVertex() method creates a new vertex with no edges. It inserts a new pair into the adjacency list where the key is the next available index (which is the current size of the list) and the value is an empty set (indicating that the new vertex is not connected to any other vertex).
+
+The insertNextEdge() method creates a bidirectional edge between two vertices. If any of the vertices do not exist, they are created.
+
+The getConnectedComponents() method determines the connected components of the graph. It does this by performing a depth-first search from each unvisited vertex to identify all reachable vertices and assign them the same component id. A connected component is a subgraph in which any two vertices are connected to each other by a path, and which is connected to no additional vertices in the graph.
+
+The depthFirstComponentSearch() method is a private helper function used by getConnectedComponents() to perform the depth-first search and assign component ids.
+
+Note that this class uses the depth-first search algorithm to find connected components in an undirected graph. This is an appropriate choice as depth-first search visits all vertices of the graph in depthward motion and checks for a cycle in the graph. Depth-first search is also efficient for this task, with a time complexity of O(V + E), where V is the number of vertices and E is the number of edges.
