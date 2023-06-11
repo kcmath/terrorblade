@@ -13,3 +13,74 @@ The getConnectedComponents() method determines the connected components of the g
 The depthFirstComponentSearch() method is a private helper function used by getConnectedComponents() to perform the depth-first search and assign component ids.
 
 Note that this class uses the depth-first search algorithm to find connected components in an undirected graph. This is an appropriate choice as depth-first search visits all vertices of the graph in depthward motion and checks for a cycle in the graph. Depth-first search is also efficient for this task, with a time complexity of O(V + E), where V is the number of vertices and E is the number of edges.
+
+
+using IndexType = std::size_t;
+This creates a type alias IndexType which is equivalent to std::size_t. This is just for code readability and easy modification in the future.
+
+typedef typename std::unordered_set<IndexType> edgeListType;
+This creates a type alias edgeListType which represents an unordered set of IndexType. It represents a set of edges for a given vertex.
+
+typedef typename std::unordered_map<IndexType, edgeListType> adjacencyListType;
+This creates a type alias adjacencyListType which represents an unordered map where the key is of IndexType (representing the index of a vertex) and the value is edgeListType (representing the edges connected to that vertex).
+
+adjacencyListType adjacencyList;
+std::vector<IndexType> componentIds;
+The adjacencyList object is the actual graph data structure where each vertex and its connected vertices (edges) are stored. componentIds is a vector where the index represents a vertex and the value represents the connected component that vertex belongs to.
+
+
+void depthFirstComponentSearch(const std::size_t &currentVertex,
+                               int &currentComponent) {
+  componentIds[currentVertex] = currentComponent;
+
+  auto vertexListIt = adjacencyList.find(currentVertex);
+  if (vertexListIt == adjacencyList.end()) {
+    lsMessage::getInstance().addError(
+        "lsGraph: Vertex " + std::to_string(currentVertex) +
+        " could not be found although it should exist!");
+  }
+
+  for (auto it = vertexListIt->second.begin();
+       it != vertexListIt->second.end(); ++it) {
+    if (componentIds[*it] == -1) {
+      depthFirstComponentSearch(*it, currentComponent);
+    }
+  }
+}
+This function is a recursive depth-first search. For a given vertex (currentVertex), it first assigns that vertex's component in the componentIds vector. It then finds the edges connected to the currentVertex. If the vertex isn't found in the adjacency list, an error is added to lsMessage. It then iterates over each edge; if that edge's vertex hasn't been visited yet (indicated by its component id being -1), it calls itself with the new vertex and the current component.
+
+
+std::size_t insertNextVertex() {
+  adjacencyList.insert(std::make_pair(adjacencyList.size(), edgeListType()));
+  return adjacencyList.size() - 1;
+}
+This function adds a new vertex to the adjacencyList with no edges (empty edgeListType) and returns the index of that new vertex.
+
+
+void insertNextEdge(std::size_t vertex1, std::size_t vertex2) {
+  auto it = adjacencyList.insert(std::make_pair(vertex1, edgeListType())).first;
+  it->second.insert(vertex2);
+  it = adjacencyList.insert(std::make_pair(vertex2, edgeListType())).first;
+  it->second.insert(vertex1);
+}
+This function creates an edge between vertex1 and vertex2 in both directions (since this graph is undirected). If either vertex does not exist in the adjacencyList, they are added with no edges before adding the edge.
+
+
+std::vector<IndexType> getConnectedComponents() {
+  componentIds.resize(adjacencyList.size(), -1);
+  int currentComponent = 0;
+  std::size_t currentVertex = 0;
+
+  for (auto it = adjacencyList.begin(); it != adjacencyList.end(); ++it) {
+    if (componentIds[currentVertex] == -1) {
+      depthFirstComponentSearch(currentVertex, currentComponent);
+      ++currentComponent;
+    }
+    ++currentVertex;
+  }
+
+  return componentIds;
+}
+The getConnectedComponents() method first resets the componentIds vector to -1 for each vertex, indicating that no vertices have been visited. It then iterates over each vertex in the adjacencyList; if a vertex hasn't been visited (its component id is -1), it calls depthFirstComponentSearch() on that vertex with the currentComponent id, then increments currentComponent for the next new component found.
+
+The underlying algorithm here is the Depth-First Search (DFS) algorithm, which is being used to find the connected components in the graph. DFS works by visiting a vertex, then recursively visiting all its unvisited neighbours. The getConnectedComponents() function uses DFS to assign a unique id to each connected component in the graph, where a connected component is a set of vertices in a graph that are connected to each other by a path, and disconnected from all other vertices outside the component.
