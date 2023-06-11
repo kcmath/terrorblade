@@ -94,3 +94,11 @@ int main() {
 
     return 0;
 }
+
+//In this updated code, the UnionFind class represents the Union-Find data structure. The find method finds the root (representative) of a set, and the unite method combines two sets by joining their roots.
+
+//The findConnectedComponents function uses the Union-Find data structure to find the connected components in the graph. It iterates over each vertex and its neighbors, performing the unite operation to merge the sets. Then, it assigns component IDs to the vertices based on their root (representative) in the Union-Find structure. The componentID map stores the mapping between each vertex and its component ID.
+
+//The main function remains the same, and it outputs the vertex tagging with their corresponding component IDs. Now, when you run this code, you should see the vertices tagged with their respective component IDs using the Union-Find data structure.
+
+//Union-Find is particularly efficient when there are a large number of union operations, making it a suitable choice for finding connected components in a graph. It has a time complexity of O(alpha(n)) per operation, where alpha(n) is the inverse Ackermann function and grows very slowly. Therefore, the overall time complexity of finding connected components using Union-Find is approximately O(V + E * alpha(n)), where V is the number of vertices and E is the number of edges in the graph.
