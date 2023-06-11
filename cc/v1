@@ -1,0 +1,17 @@
+Template Parameters: The class is templated over the type T (probably representing the data type of the level set values), and D (probably representing the spatial dimension of the problem).
+
+Class Variables: The class has a few member variables including a smart pointer to the level set domain (lsDomain<T, D>) and some boolean flags controlling the behavior of the void detection.
+
+Connectivity Check: The method areConnected checks if two points are connected based on their level set values.
+
+Component Count Merge: The method mergeComponentCounts merges component counts according to the connected components.
+
+Top ID Calculation: The method calculateTopID checks which component has the most points.
+
+Configuring the Behavior: The setLevelSet, setReverseVoidDetection, setDetectLargestSurface, setVoidTopSurface, setSaveComponentIds methods are used to configure the behavior of the void detection.
+
+Applying the Detection: The apply method executes the void detection operation. It appears to iterate over all points in the level set domain, constructing a graph of connectivity between level set points. It identifies the 'top' component based on configuration parameters. Then it iterates again to mark void points.
+
+The void points are apparently represented as a binary mask in the voidPointMarkers vector, which gets stored in the point data of the domain. It appears that any level set point that does not belong to the identified 'top' component is considered a void point.
+
+In summary, the class is used to mark points in a level set that are enclosed in a void, based on some criteria for what is considered the 'top' connected component. The 'void' points are points that are not part of this 'top' component.
