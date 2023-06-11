@@ -1,0 +1,104 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+class UnionFind {
+private:
+    vector<int> parent;
+    vector<int> rank;
+
+public:
+    UnionFind(int n) {
+        parent.resize(n);
+        rank.resize(n, 0);
+
+        for (int i = 0; i < n; ++i) {
+            parent[i] = i;
+        }
+    }
+
+    int find(int x) {
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
+    }
+
+    void unite(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+
+        if (rootX == rootY) {
+            return;
+        }
+
+        if (rank[rootX] < rank[rootY]) {
+            parent[rootX] = rootY;
+        } else if (rank[rootX] > rank[rootY]) {
+            parent[rootY] = rootX;
+        } else {
+            parent[rootY] = rootX;
+            rank[rootX]++;
+        }
+    }
+};
+
+unordered_map<int, int> findConnectedComponents(vector<vector<int>>& graph) {
+    int numVertices = graph.size();
+    UnionFind uf(numVertices);
+    unordered_map<int, int> componentID;
+
+    for (int vertex = 0; vertex < numVertices; ++vertex) {
+        for (int neighbor : graph[vertex]) {
+            uf.unite(vertex, neighbor);
+        }
+    }
+
+    int componentCounter = 0;
+    for (int vertex = 0; vertex < numVertices; ++vertex) {
+        int root = uf.find(vertex);
+        if (componentID.find(root) == componentID.end()) {
+            componentID[root] = componentCounter++;
+        }
+        componentID[vertex] = componentID[root];
+    }
+
+    return componentID;
+}
+
+int main() {
+    int numVertices = 9;
+    vector<vector<int>> graph(numVertices);
+
+    // Adding edges to the graph
+    graph[0] = {1, 2};
+    graph[1] = {0, 2};
+    graph[2] = {0, 1};
+    graph[3] = {4, 5};
+    graph[4] = {3, 5};
+    graph[5] = {3, 4};
+    graph[6] = {7};
+    graph[7] = {6};
+    graph[8] = {};  // isolated vertex
+
+    // Find connected components using Union-Find
+    unordered_map<int, int> componentID = findConnectedComponents(graph);
+
+    // Output the vertex tagging
+    cout << "Vertex Component ID:" << endl;
+    for (int vertex = 0; vertex < numVertices; ++vertex) {
+        cout << "Vertex " << vertex << ": Component " << componentID[vertex] << endl;
+    }
+
+    return 0;
+}
+
+//This implementation uses both path compression and union by rank heuristics to achieve efficient time complexity. Path compression optimizes the find operation by flattening the tree structure, which results in amortized constant time complexity. Union by rank heuristics optimizes the unite operation by always attaching the smaller tree to the root of the larger tree, which helps maintain a balanced tree structure.
+
+//With these optimizations, the time complexity of the Union-Find operations becomes nearly constant on average. The find operation has an amortized time complexity of O(α(n)), where α(n) is the inverse Ackermann function and grows very slowly. The unite operation also has an amortized time complexity of O(α(n)).
+
+//When using Union-Find to find connected components in a graph, the time complexity depends on the number of vertices (V) and edges (E) in the graph. Building the initial Union-Find data structure by performing union operations for each edge has a time complexity of O(E * α(n)). Afterward, assigning component IDs to vertices has a time complexity of O(V). Therefore, the overall time complexity of finding connected components using Union-Find is approximately O(V + E * α(n)).
+
+//This efficient implementation of Union-Find with path compression and union by rank is widely used for various graph-related algorithms, including connected components analysis. It provides a good balance between simplicity and performance.
