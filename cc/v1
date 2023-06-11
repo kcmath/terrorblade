@@ -15,3 +15,42 @@ Applying the Detection: The apply method executes the void detection operation. 
 The void points are apparently represented as a binary mask in the voidPointMarkers vector, which gets stored in the point data of the domain. It appears that any level set point that does not belong to the identified 'top' component is considered a void point.
 
 In summary, the class is used to mark points in a level set that are enclosed in a void, based on some criteria for what is considered the 'top' connected component. The 'void' points are points that are not part of this 'top' component.
+
+Line 1-16:
+These lines are just header guards to prevent multiple inclusions of the same header file. It's standard C++ practice to ensure a header file's contents are not copied multiple times into a single .cpp file during preprocessing.
+
+Line 18-23:
+These lines include several header files that this class depends upon. hrleSparseStarIterator.hpp might be for iterating over grid points in the level-set domain, while lsPreCompileMacros.hpp, lsDomain.hpp and lsGraph.hpp likely contain definitions for the level-set domain and the graph class used for connectivity information.
+
+Line 25-36:
+This is an enumeration defining different strategies for selecting the 'top' surface during void point detection. LEX_LOWEST and LEX_HIGHEST select the lexicographically first or last point respectively, while LARGEST and SMALLEST select the largest or smallest component respectively.
+
+Line 38-65:
+This block defines the class lsMarkVoidPoints. The class is templated on the type T and the integer D. T likely represents the data type of the level set (for example, float, double etc.), and D represents the number of dimensions in the level-set domain.
+
+Line 67-69:
+The IndexType is a type alias for std::size_t, which is typically used to represent sizes and indices in standard library containers.
+
+Line 71-75:
+These are some of the member variables of the class. domain is a smart pointer to the level-set domain. reverseVoidDetection, saveComponents, and detectLargestSurface are configuration flags which control the behavior of the void detection process.
+
+Line 77-81:
+This is the method areConnected, which checks if two level set points are connected by comparing their signs. The comparison (value1 >= 0) == (value2 >= 0) will return true if value1 and value2 have the same sign.
+
+Line 83-102:
+This is the method mergeComponentCounts, which merges counts of points per component according to their connectivity. It first finds the highest index from the components vector, then uses this to create a vector pointsPerConnected of the same size. Each index of pointsPerConnected corresponds to a component and holds the total number of points in that component.
+
+Line 104-118:
+This is the method calculateTopID, which determines which component ID corresponds to the "top" surface. It initially sets topId to the first component with non-zero points, then iterates through the remaining components. If a component with more points is found, topId is updated.
+
+Line 120-126:
+The public section begins. The variable voidPointLabel is a static constexpr character array that likely defines the label used when storing the void point markers in the point data.
+
+Line 128-131:
+Two constructors for the class lsMarkVoidPoints. The default constructor initializes an empty object, while the constructor with parameters initializes the object with a given level set domain.
+
+Line 133-150:
+Several setter methods are defined to configure the void detection operation. setLevelSet sets the level set domain, setReverseVoidDetection determines whether the detection should be inverted, setDetectLargestSurface configures whether the largest surface should be considered as the top, setVoidTopSurface configures whether the top surface should be considered as void, setSaveComponentIds configures whether the component IDs should be saved.
+
+Line 152-159:
+This block of code includes the declaration of apply method. The apply method actually carries out the void point detection based on the configurations provided through setter methods. However, the implementation details of this method are not shown in the code snippet provided. It presumably involves building a connectivity graph of level set points, identifying the top surface, and marking points as void points based on the calculated top surface.
